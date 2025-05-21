@@ -1,0 +1,51 @@
+NOTICE
+
+This project includes the following third-party software components:
+
+---
+
+**FFmpeg**
+https://ffmpeg.org
+
+FFmpeg is licensed under the GNU Lesser General Public License (LGPL) version 2.1 or later.
+Some optional components of FFmpeg are licensed under the GNU General Public License (GPL).
+This project uses an FFmpeg binary built with LGPL-compliant options.
+
+See the full license here: https://www.ffmpeg.org/legal.html
+
+---
+
+**@ffmpeg-installer/ffmpeg**
+https://github.com/eugeneware/ffmpeg-installer
+
+This package provides a statically linked FFmpeg binary with LGPL configuration for use in Node.js environments.
+License: LGPL-2.1-or-later
+
+---
+
+**fluent-ffmpeg**
+https://github.com/fluent-ffmpeg/node-fluent-ffmpeg
+
+MIT License  
+Copyright (c) 2012-2019 fluent-ffmpeg contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software...
+
+---
+
+**Used Codecs Notice**
+
+The following codecs are used when converting videos:
+
+- **H.264 (libx264)** and **AAC**: These codecs are widely used and supported, but are subject to software patents in certain jurisdictions. Use in commercial or distributed applications may require a patent license from relevant entities such as MPEG LA.  
+  More info: https://www.mpegla.com/programs/avc/  
+  FFmpeg includes an open implementation (`libx264`, `aac`), but the use of these codecs may still require a license in some cases.
+
+- **VP8 (libvpx)** and **Vorbis (libvorbis)**: These codecs are open and royalty-free. They are safe to use in both open source and commercial applications.  
+  More info: https://www.webmproject.org/
+
+---
+
+**Disclaimer**
+
+This project does not provide legal advice. If you intend to use this software in a commercial context or distribute it, you are responsible for ensuring compliance with the relevant software licenses and codec patents.

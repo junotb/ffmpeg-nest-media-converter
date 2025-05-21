@@ -1,22 +1,33 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { existsSync, unlinkSync } from 'fs';
+import { join } from 'path';
 
 describe('AppController', () => {
   let appController: AppController;
 
-  beforeEach(async () => {
-    const app: TestingModule = await Test.createTestingModule({
+  beforeAll(async () => {
+    const moduleRef: TestingModule = await Test.createTestingModule({
       controllers: [AppController],
       providers: [AppService],
     }).compile();
 
-    appController = app.get<AppController>(AppController);
+    appController = moduleRef.get<AppController>(AppController);
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+    it('should convert webm to mp4', async () => {
+      const outputFilePath = join(process.cwd(), 'outputs', 'output.mp4');
+      await appController.convertWebmToMp4();
+      expect(existsSync(outputFilePath)).toBe(true);
+      unlinkSync(outputFilePath);
+    });
+    it('should convert mp4 to webm', async () => {
+      const outputFilePath = join(process.cwd(), 'outputs', 'output.webm');
+      await appController.convertMp4ToWebm();
+      expect(existsSync(outputFilePath)).toBe(true);
+      unlinkSync(outputFilePath);
     });
   });
 });
