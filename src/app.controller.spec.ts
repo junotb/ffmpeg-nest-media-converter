@@ -1,33 +1,59 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { existsSync, unlinkSync } from 'fs';
-import { join } from 'path';
 
 describe('AppController', () => {
   let appController: AppController;
+  let appService: AppService;
 
-  beforeAll(async () => {
-    const moduleRef: TestingModule = await Test.createTestingModule({
+  beforeEach(async () => {
+    const mockAppService = {
+      convertWebmToMp4: jest.fn(),
+      convertMp4ToWebm: jest.fn(),
+    };
+
+    const module: TestingModule = await Test.createTestingModule({
       controllers: [AppController],
-      providers: [AppService],
+      providers: [{ provide: AppService, useValue: mockAppService }],
     }).compile();
 
-    appController = moduleRef.get<AppController>(AppController);
+    appController = module.get<AppController>(AppController);
+    appService = module.get<AppService>(AppService);
   });
 
-  describe('root', () => {
-    it('should convert webm to mp4', async () => {
-      const outputFilePath = join(process.cwd(), 'outputs', 'output.mp4');
-      await appController.convertWebmToMp4();
-      expect(existsSync(outputFilePath)).toBe(true);
-      unlinkSync(outputFilePath);
+  it('should convert webm to mp4', async () => {
+    const mockFile = {
+      originalname: 'test.webm',
+      buffer: Buffer.from('dummy webm data'),
+    } as Express.Multer.File;
+
+    const expectedResult = Buffer.from('converted mp4');
+    (appService.convertWebmToMp4 as jest.Mock).mockResolvedValue(expectedResult);
+
+    const result = await appController.convertWebmToMp4(mockFile);
+
+    expect(appService.convertWebmToMp4).toHaveBeenCalledWith({
+      filename: mockFile.originalname,
+      buffer: mockFile.buffer,
     });
-    it('should convert mp4 to webm', async () => {
-      const outputFilePath = join(process.cwd(), 'outputs', 'output.webm');
-      await appController.convertMp4ToWebm();
-      expect(existsSync(outputFilePath)).toBe(true);
-      unlinkSync(outputFilePath);
+    expect(result).toBe(expectedResult);
+  });
+
+  it('should convert mp4 to webm', async () => {
+    const mockFile = {
+      originalname: 'test.mp4',
+      buffer: Buffer.from('dummy mp4 data'),
+    } as Express.Multer.File;
+
+    const expectedResult = Buffer.from('converted webm');
+    (appService.convertMp4ToWebm as jest.Mock).mockResolvedValue(expectedResult);
+
+    const result = await appController.convertMp4ToWebm(mockFile);
+
+    expect(appService.convertMp4ToWebm).toHaveBeenCalledWith({
+      filename: mockFile.originalname,
+      buffer: mockFile.buffer,
     });
+    expect(result).toBe(expectedResult);
   });
 });

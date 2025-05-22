@@ -1,57 +1,73 @@
 import { Injectable } from '@nestjs/common';
 import * as ffmpeg from 'fluent-ffmpeg';
 import * as ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
+import { tmpdir } from 'os';
 import { join } from 'path';
+import { readFile, unlink, writeFile } from 'fs/promises';
+import { randomUUID } from 'crypto';
 
 ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 
+interface ConvertDto {
+  filename: string;
+  buffer: Buffer;
+}
+
 @Injectable()
 export class AppService {
-  async convertWebmToMp4(
-    inputFilename: string,
-    outputFilename: string,
-  ): Promise<void> {
-    const inputFilepath = join(process.cwd(), 'inputs', inputFilename);
-    const outputFilepath = join(process.cwd(), 'outputs', outputFilename);
+  async convertWebmToMp4({
+    filename,
+    buffer,
+  }: ConvertDto): Promise<Buffer> {
+    const inputPath = join(tmpdir(), `${randomUUID}_${filename}`);
+    const outputPath = inputPath.replace(/\.webm$/, '.mp4');
 
-    return new Promise((resolve, reject) => {
-      ffmpeg(inputFilepath)
-        .outputOptions([
-          '-c:v libx264', // 비디오 코덱
-          '-preset slow', // 인코딩 속도 (slow, medium, fast)
-          '-crf 20', // 비디오 품질 (0-51, 낮을수록 품질 좋음)
-          '-r 30', // 프레임 레이트 (초당 프레임 수)
-          '-c:a aac', // 오디오 코덱
-          '-b:a 128k', // 오디오 비트레이트
-          '-movflags +faststart', // MP4 파일 최적화
-        ])
+    // 원본 파일 저장
+    await writeFile(inputPath, buffer);
+
+    // mp4 변환
+    await new Promise<void>((resolve, reject) => {
+      ffmpeg(inputPath)
+        .outputOptions(['-c:v libx264', '-c:a aac'])
         .format('mp4')
+        .save(outputPath)
         .on('end', () => resolve())
-        .on('error', (err) => reject(err))
-        .save(outputFilepath);
+        .on('error', (err) => reject(err));
     });
+
+    // 변환된 파일 읽고 삭제
+    const outputBuffer = await readFile(outputPath);
+    await unlink(inputPath);
+    await unlink(outputPath);
+
+    return outputBuffer;
   }
 
-  async convertMp4ToWebm(
-    inputFilename: string,
-    outputFilename: string,
-  ): Promise<void> {
-    const inputFilepath = join(__dirname, '..', 'inputs', inputFilename);
-    const outputFilepath = join(__dirname, '..', 'outputs', outputFilename);
+  async convertMp4ToWebm({
+    filename,
+    buffer,
+  }: ConvertDto): Promise<Buffer> {
+    const inputPath = join(tmpdir(), `${randomUUID}_${filename}`);
+    const outputPath = inputPath.replace(/\.mp4$/, '.webm');
 
-    return new Promise((resolve, reject) => {
-      ffmpeg(inputFilepath)
-        .outputOptions([
-          '-c:v libvpx', // 비디오 코덱
-          '-crf 30', // 비디오 품질 (0-63, 낮을수록 품질 좋음)
-          '-b:v 1M', // 비디오 비트레이트
-          '-c:a libvorbis', // 오디오 코덱
-          '-b:a 128k', // 오디오 비트레이트
-        ])
+    // 원본 파일 저장
+    await writeFile(inputPath, buffer);
+
+    // webm 변환
+    await new Promise<void>((resolve, reject) => {
+      ffmpeg(inputPath)
+        .outputOptions(['-c:v libvpx', '-c:a libvorbis', '-b:a 128k'])
         .format('webm')
+        .save(outputPath)
         .on('end', () => resolve())
         .on('error', (err) => reject(err))
-        .save(outputFilepath);
     });
+
+    // 변환된 파일 읽고 삭제
+    const outputBuffer = await readFile(outputPath);
+    await unlink(inputPath);
+    await unlink(outputPath);
+
+    return outputBuffer;
   }
 }
