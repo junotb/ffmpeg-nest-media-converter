@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>NestJS API 테스트</title>
+  <!-- TailwindCSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Axios CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+  <div class="bg-white p-6 rounded shadow-md text-center">
+    <h1 class="text-xl font-semibold mb-4">WebM → MP4 변환</h1>
+    <input type="file" id="fileInput" accept=".webm" class="mb-4">
+    <br>
+    <button onclick="uploadFile()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+      변환 요청
+    </button>
+    <p id="status" class="mt-4 text-sm text-gray-700"></p>
+  </div>
+
+  <script>
+    async function uploadFile() {
+      const input = document.getElementById('fileInput');
+      const file = input.files[0];
+      const status = document.getElementById('status');
+
+      if (!file) {
+        alert('파일을 선택하세요');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      status.innerText = '변환 중...';
+
+      try {
+        const response = await axios.post('/convert/webm-to-mp4', formData, {
+          responseType: 'blob', // 바이너리 파일을 받기 위해 blob 설정
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'converted.mp4';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+
+        status.innerText = '변환 및 다운로드 완료!';
+      } catch (err) {
+        console.error(err);
+        status.innerText = '에러 발생: ' + (err?.response?.data?.message || err.message);
+      }
+    }
+  </script>
+</body>
+</html>
