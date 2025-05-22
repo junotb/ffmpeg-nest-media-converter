@@ -9,17 +9,15 @@ import { randomUUID } from 'crypto';
 ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 
 interface ConvertDto {
-  filename: string;
   buffer: Buffer;
 }
 
 @Injectable()
 export class AppService {
   async convertWebmToMp4({
-    filename,
     buffer,
   }: ConvertDto): Promise<Buffer> {
-    const inputPath = join(tmpdir(), `${randomUUID}_${filename}`);
+    const inputPath = join(tmpdir(), `${randomUUID()}.webm`);
     const outputPath = inputPath.replace(/\.webm$/, '.mp4');
 
     // 원본 파일 저장
@@ -28,6 +26,7 @@ export class AppService {
     // mp4 변환
     await new Promise<void>((resolve, reject) => {
       ffmpeg(inputPath)
+        .inputFormat('webm')
         .outputOptions(['-c:v libx264', '-c:a aac'])
         .format('mp4')
         .save(outputPath)
@@ -44,10 +43,9 @@ export class AppService {
   }
 
   async convertMp4ToWebm({
-    filename,
     buffer,
   }: ConvertDto): Promise<Buffer> {
-    const inputPath = join(tmpdir(), `${randomUUID}_${filename}`);
+    const inputPath = join(tmpdir(), `${randomUUID()}.mp4`);
     const outputPath = inputPath.replace(/\.mp4$/, '.webm');
 
     // 원본 파일 저장
@@ -56,6 +54,7 @@ export class AppService {
     // webm 변환
     await new Promise<void>((resolve, reject) => {
       ffmpeg(inputPath)
+        .inputFormat('mp4')
         .outputOptions(['-c:v libvpx', '-c:a libvorbis', '-b:a 128k'])
         .format('webm')
         .save(outputPath)

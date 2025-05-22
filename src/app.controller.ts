@@ -10,7 +10,6 @@ export class AppController {
   @UseInterceptors(FileInterceptor('file'))
   async convertWebmToMp4(@UploadedFile() file: Express.Multer.File) {
     return this.appService.convertWebmToMp4({
-      filename: file.originalname,
       buffer: file.buffer,
     });
   }
@@ -19,7 +18,6 @@ export class AppController {
   @UseInterceptors(FileInterceptor('file'))
   async convertMp4ToWebm(@UploadedFile() file: Express.Multer.File) {
     return this.appService.convertMp4ToWebm({
-      filename: file.originalname,
       buffer: file.buffer,
     });
   }
