@@ -24,27 +24,30 @@ export class AppService {
     await writeFile(inputPath, buffer);
 
     // mp4 변환
-    await new Promise<void>((resolve, reject) => {
-      ffmpeg(inputPath)
-        .inputFormat('webm')
-        .outputOptions([
-          '-c:v libx264', // 영상 인코딩
-          '-c:a aac', // 오디오 인코딩
-          '-b:a 128k', // 오디오 비트레이트
-          '-movflags +faststart', // 파일 시작 부분에 moov atom 추가
-        ])
-        .format('mp4')
-        .save(outputPath)
-        .on('end', () => resolve())
-        .on('error', (err) => reject(err));
-    });
+    try {
+      await new Promise<void>((resolve, reject) => {
+        ffmpeg(inputPath)
+          .inputFormat('webm')
+          .outputOptions([
+            '-c:v libx264', // 영상 인코딩
+            '-c:a aac', // 오디오 인코딩
+            '-b:a 128k', // 오디오 비트레이트
+            '-movflags +faststart', // 파일 시작 부분에 moov atom 추가
+          ])
+          .format('mp4')
+          .save(outputPath)
+          .on('end', () => resolve())
+          .on('error', (err) => reject(err));
+      });
 
-    // 변환된 파일 읽고 삭제
-    const outputBuffer = await readFile(outputPath);
-    await unlink(inputPath);
-    await unlink(outputPath);
-
-    return outputBuffer;
+      const result = await readFile(outputPath);
+      return result;
+    } finally {
+      await Promise.allSettled([
+        unlink(inputPath),
+        unlink(outputPath),
+      ]);
+    }
   }
 
   async convertMp4ToWebm({
@@ -57,25 +60,28 @@ export class AppService {
     await writeFile(inputPath, buffer);
 
     // webm 변환
-    await new Promise<void>((resolve, reject) => {
-      ffmpeg(inputPath)
-        .inputFormat('mp4')
-        .outputOptions([
-          '-c:v libvpx', // 영상 인코딩
-          '-c:a libvorbis', // 오디오 인코딩
-          '-b:a 128k', // 오디오 비트레이트
-        ])
-        .format('webm')
-        .save(outputPath)
-        .on('end', () => resolve())
-        .on('error', (err) => reject(err))
-    });
+    try {
+      await new Promise<void>((resolve, reject) => {
+        ffmpeg(inputPath)
+          .inputFormat('mp4')
+          .outputOptions([
+            '-c:v libvpx', // 영상 인코딩
+            '-c:a libvorbis', // 오디오 인코딩
+            '-b:a 128k', // 오디오 비트레이트
+          ])
+          .format('webm')
+          .save(outputPath)
+          .on('end', () => resolve())
+          .on('error', (err) => reject(err))
+      });
 
-    // 변환된 파일 읽고 삭제
-    const outputBuffer = await readFile(outputPath);
-    await unlink(inputPath);
-    await unlink(outputPath);
-
-    return outputBuffer;
+      const result = await readFile(outputPath);
+      return result;
+    } finally {
+      await Promise.allSettled([
+        unlink(inputPath),
+        unlink(outputPath),
+      ]);
+    }
   }
 }
