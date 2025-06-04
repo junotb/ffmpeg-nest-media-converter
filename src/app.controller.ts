@@ -13,13 +13,17 @@ export class AppController {
     @UploadedFile() file: Express.Multer.File,
     @Res() res: Response
   ) {
+    const filenameWithoutExtension = file.originalname.includes('.')
+      ? file.originalname.substring(0, file.originalname.lastIndexOf('.'))
+      : file.originalname;
+
     const mp4Buffer = await this.appService.convertWebmToMp4({
       buffer: file.buffer,
     });
 
     res.set({
       'Content-Type': 'video/mp4',
-      'Content-Disposition': 'attachment; filename="converted.mp4"',
+      'Content-Disposition': `attachment; filename="${filenameWithoutExtension}.mp4"`,
     });
 
     res.send(mp4Buffer);
@@ -31,13 +35,17 @@ export class AppController {
     @UploadedFile() file: Express.Multer.File,
     @Res() res: Response
   ) {
+    const filenameWithoutExtension = file.originalname.includes('.')
+      ? file.originalname.substring(0, file.originalname.lastIndexOf('.'))
+      : file.originalname;
+
     const webmBuffer = await this.appService.convertMp4ToWebm({
       buffer: file.buffer,
     });
 
     res.set({
       'Content-Type': 'video/webm',
-      'Content-Disposition': 'attachment; filename="converted.webm"',
+      'Content-Disposition': `attachment; filename="${filenameWithoutExtension}.webm"`,
     });
 
     res.send(webmBuffer);
