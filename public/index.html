@@ -54,8 +54,8 @@
           }
         });
 
-        const contentType = headers.get('Content-Type');
-        const disposition = headers.get('Content-Disposition');
+        const contentType = headers['content-type'];
+        const disposition = headers['content-disposition'];
 
         let filename;
         if (contentType.includes('video/mp4')) filename = 'converted.mp4';
