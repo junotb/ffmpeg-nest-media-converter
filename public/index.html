@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>NestJS API 테스트</title>
+  <!-- TailwindCSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Axios CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col md:flex-row items-center justify-center gap-4">
+  <div class="bg-white p-6 rounded shadow-md text-center">
+    <h1 class="text-xl font-semibold mb-4">WebM → MP4 변환</h1>
+    <input type="file" accept=".webm" class="mb-4">
+    <br>
+    <button onclick="uploadFile(this)" data-type="webm-to-mp4" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+      변환 요청
+    </button>
+    <p class="mt-4 text-sm text-gray-700"></p>
+  </div>
+ 
+  <div class="bg-white p-6 rounded shadow-md text-center">
+    <h1 class="text-xl font-semibold mb-4">MP4 → WebM 변환</h1>
+    <input type="file" accept=".mp4" class="mb-4">
+    <br>
+    <button onclick="uploadFile(this)" data-type="mp4-to-webm" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+      변환 요청
+    </button>
+    <p class="mt-4 text-sm text-gray-700"></p>
+  </div>
+
+  <script>
+    async function uploadFile(button) {
+      const type = button.dataset.type;
+      const input = button.parentElement.querySelector('input');
+      const file = input.files[0];
+      const status = button.parentElement.querySelector('p');
+
+      if (!file) {
+        alert('파일을 선택하세요');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      status.innerText = '변환 중...';
+
+      try {
+        const { headers, data } = await axios.post(`/convert/${type}`, formData, {
+          responseType: 'blob', // 바이너리 파일을 받기 위해 blob 설정
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+
+        const contentType = headers['content-type'];
+        const disposition = headers['content-disposition'];
+
+        let filename;
+        if (contentType.includes('video/mp4')) filename = 'converted.mp4';
+        else if (contentType.includes('video/webm')) filename = 'converted.webm';
+
+        if (disposition && disposition.includes('filename=')) {
+          const match = disposition.match(/filename="?([^"]+)"?/);
+          if (match && match[1]) {
+            filename = match[1];
+          }
+        }
+
+        const url = window.URL.createObjectURL(new Blob([data]));
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+
+        status.innerText = '변환 및 다운로드 완료!';
+      } catch (err) {
+        console.error(err);
+        status.innerText = '에러 발생: ' + (err?.response?.data?.message || err.message);
+      }
+    }
+  </script>
+</body>
+</html>
