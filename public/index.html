@@ -8,22 +8,33 @@
   <!-- Axios CDN -->
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+<body class="bg-gray-100 min-h-screen flex flex-col md:flex-row items-center justify-center gap-4">
   <div class="bg-white p-6 rounded shadow-md text-center">
     <h1 class="text-xl font-semibold mb-4">WebM → MP4 변환</h1>
-    <input type="file" id="fileInput" accept=".webm" class="mb-4">
+    <input type="file" accept=".webm" class="mb-4">
     <br>
-    <button onclick="uploadFile()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+    <button onclick="uploadFile(this)" data-type="webm-to-mp4" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
       변환 요청
     </button>
-    <p id="status" class="mt-4 text-sm text-gray-700"></p>
+    <p class="mt-4 text-sm text-gray-700"></p>
+  </div>
+ 
+  <div class="bg-white p-6 rounded shadow-md text-center">
+    <h1 class="text-xl font-semibold mb-4">MP4 → WebM 변환</h1>
+    <input type="file" accept=".mp4" class="mb-4">
+    <br>
+    <button onclick="uploadFile(this)" data-type="mp4-to-webm" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+      변환 요청
+    </button>
+    <p class="mt-4 text-sm text-gray-700"></p>
   </div>
 
   <script>
-    async function uploadFile() {
-      const input = document.getElementById('fileInput');
+    async function uploadFile(button) {
+      const type = button.dataset.type;
+      const input = button.parentElement.querySelector('input');
       const file = input.files[0];
-      const status = document.getElementById('status');
+      const status = button.parentElement.querySelector('p');
 
       if (!file) {
         alert('파일을 선택하세요');
@@ -36,17 +47,31 @@
       status.innerText = '변환 중...';
 
       try {
-        const response = await axios.post('/convert/webm-to-mp4', formData, {
+        const { headers, data } = await axios.post(`/convert/${type}`, formData, {
           responseType: 'blob', // 바이너리 파일을 받기 위해 blob 설정
           headers: {
             'Content-Type': 'multipart/form-data'
           }
         });
 
-        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const contentType = headers.get('Content-Type');
+        const disposition = headers.get('Content-Disposition');
+
+        let filename;
+        if (contentType.includes('video/mp4')) filename = 'converted.mp4';
+        else if (contentType.includes('video/webm')) filename = 'converted.webm';
+
+        if (disposition && disposition.includes('filename=')) {
+          const match = disposition.match(/filename="?([^"]+)"?/);
+          if (match && match[1]) {
+            filename = match[1];
+          }
+        }
+
+        const url = window.URL.createObjectURL(new Blob([data]));
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'converted.mp4';
+        a.download = filename;
         document.body.appendChild(a);
         a.click();
         a.remove();

@@ -27,7 +27,12 @@ export class AppService {
     await new Promise<void>((resolve, reject) => {
       ffmpeg(inputPath)
         .inputFormat('webm')
-        .outputOptions(['-c:v libx264', '-c:a aac'])
+        .outputOptions([
+          '-c:v libx264', // 영상 인코딩
+          '-c:a aac', // 오디오 인코딩
+          '-b:a 128k', // 오디오 비트레이트
+          '-movflags +faststart', // 파일 시작 부분에 moov atom 추가
+        ])
         .format('mp4')
         .save(outputPath)
         .on('end', () => resolve())
@@ -55,7 +60,11 @@ export class AppService {
     await new Promise<void>((resolve, reject) => {
       ffmpeg(inputPath)
         .inputFormat('mp4')
-        .outputOptions(['-c:v libvpx', '-c:a libvorbis', '-b:a 128k'])
+        .outputOptions([
+          '-c:v libvpx', // 영상 인코딩
+          '-c:a libvorbis', // 오디오 인코딩
+          '-b:a 128k', // 오디오 비트레이트
+        ])
         .format('webm')
         .save(outputPath)
         .on('end', () => resolve())
