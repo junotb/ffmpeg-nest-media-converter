@@ -20,12 +20,6 @@ FFmpeg을 활용하여 WebM ↔ MP4 포맷 간 변환을 수행합니다.
 
 ```
 ffmpeg-nest-media-converter/
-├── inputs/ # 변환할 원본 영상 폴더
-│ ├── input.webm
-│ └── input.mp4
-├── outputs/ # 변환된 결과 영상 저장 폴더
-│ ├── output.webm
-│ └── output.mp4
 ├── src/
 │ ├── app.controller.spec.ts # HTTP 엔드포인트 테스트
 │ ├── app.controller.ts # HTTP 엔드포인트 정의
@@ -40,16 +34,25 @@ ffmpeg-nest-media-converter/
 
 ### WebM → MP4
 
-1. `inputs/input.webm` 파일 준비
-2. `GET /convert-webm-to-mp4` 호출
-3. 결과: `outputs/output.mp4`
+```curl
+curl -X POST http://localhost:3000/convert/webm-to-mp4 \
+  -F "file=@./inputs/sample.webm" --output converted.mp4
+```
 
 ### MP4 → WebM
 
-1. `inputs/input.mp4` 파일 준비
-2. `GET /convert-mp4-to-webm` 호출
-3. 결과: `outputs/output.webm`
+```curl
+curl -X POST http://localhost:3000/convert/webm-to-mp4 \
+  -F "file=@./inputs/sample.webm" --output converted.mp4
+```
 
-> 파일명은 고정되어 있습니다.
-> (추후 확장 가능)
+### 샘플 변환 페이지
 
+브라우저에서 직접 파일을 업로드하고 변환 결과를 다운로드할 수 있는 **샘플 페이지**가 포함되어 있습니다.
+
+```
+/public/index.html
+실행 시 접속: http://localhost:3000
+```
+
+이 페이지는 개발/테스트용이며, 실제 서비스 적용 시에는 보안 및 파일 검증 로직을 추가해야 합니다.
