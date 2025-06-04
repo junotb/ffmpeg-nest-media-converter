@@ -36,14 +36,14 @@ ffmpeg-nest-media-converter/
 
 ```curl
 curl -X POST http://localhost:3000/convert/webm-to-mp4 \
-  -F "file=@./inputs/sample.webm" --output converted.mp4
+  -F "file=@./inputs/sample.webm" --output sample.mp4
 ```
 
 ### MP4 → WebM
 
 ```curl
-curl -X POST http://localhost:3000/convert/webm-to-mp4 \
-  -F "file=@./inputs/sample.webm" --output converted.mp4
+curl -X POST http://localhost:3000/convert/mp4-to-webm \
+  -F "file=@./inputs/sample.mp4" --output sample.webm
 ```
 
 ### 샘플 변환 페이지
