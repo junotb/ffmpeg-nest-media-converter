@@ -28,15 +28,30 @@ describe('AppController', () => {
     } as Express.Multer.File;
 
     const expectedResult = Buffer.from('converted mp4');
+
+    const mockRes = {
+      set: jest.fn(),
+      send: jest.fn(),
+    } as any
+
     (appService.convertWebmToMp4 as jest.Mock).mockResolvedValue(expectedResult);
 
-    const result = await appController.convertWebmToMp4(mockFile);
+    await appController.convertWebmToMp4(mockFile, mockRes);
 
     expect(appService.convertWebmToMp4).toHaveBeenCalledWith({
-      filename: mockFile.originalname,
       buffer: mockFile.buffer,
     });
-    expect(result).toBe(expectedResult);
+
+    const filenameWithoutExtension = mockFile.originalname.includes('.')
+      ? mockFile.originalname.substring(0, mockFile.originalname.lastIndexOf('.'))
+      : mockFile.originalname;
+
+    expect(mockRes.set).toHaveBeenCalledWith({
+      'Content-Type': 'video/mp4',
+      'Content-Disposition': `attachment; filename="${filenameWithoutExtension}.mp4"`,
+    });
+
+    expect(mockRes.send).toHaveBeenCalledWith(expectedResult);
   });
 
   it('should convert mp4 to webm', async () => {
@@ -46,14 +61,28 @@ describe('AppController', () => {
     } as Express.Multer.File;
 
     const expectedResult = Buffer.from('converted webm');
+    const mockRes = {
+      set: jest.fn(),
+      send: jest.fn(),
+    } as any;
+
     (appService.convertMp4ToWebm as jest.Mock).mockResolvedValue(expectedResult);
 
-    const result = await appController.convertMp4ToWebm(mockFile);
+    await appController.convertMp4ToWebm(mockFile, mockRes);
 
     expect(appService.convertMp4ToWebm).toHaveBeenCalledWith({
-      filename: mockFile.originalname,
       buffer: mockFile.buffer,
     });
-    expect(result).toBe(expectedResult);
+
+    const filenameWithoutExtension = mockFile.originalname.includes('.')
+      ? mockFile.originalname.substring(0, mockFile.originalname.lastIndexOf('.'))
+      : mockFile.originalname;
+
+    expect(mockRes.set).toHaveBeenCalledWith({
+      'Content-Type': 'video/webm',
+      'Content-Disposition': `attachment; filename="${filenameWithoutExtension}.webm"`,
+    });
+
+    expect(mockRes.send).toHaveBeenCalledWith(expectedResult);
   });
 });
